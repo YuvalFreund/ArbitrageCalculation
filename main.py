@@ -43,7 +43,7 @@ def calc_arbitrage(usdc_amount_eth_pool: int, zerc_amount_eth_pool: int, usdc_am
     # calculate the maximum possible zerc we can buy, consider the limits of usdc and zerc amounts in noth netowrks
     if zerc_buy_net == "eth":
         max_possible_zerc_buy = min(zerc_amount_eth_pool, usdc_amount_eth_pool * zerc_per_usdc_eth)
-        max_possible_zerc_sell = usdc_amount_polygon_pool / zerc_per_usdc_polygon
+        max_possible_zerc_sell = usdc_amount_polygon_pool * zerc_per_usdc_polygon
         zerc_to_buy = min(max_possible_zerc_buy, max_possible_zerc_sell)
 
         # return values
@@ -54,7 +54,7 @@ def calc_arbitrage(usdc_amount_eth_pool: int, zerc_amount_eth_pool: int, usdc_am
 
     else:
         max_possible_zerc_buy = min(zerc_amount_polygon_pool, usdc_amount_polygon_pool * zerc_per_usdc_eth)
-        max_possible_zerc_sell = usdc_amount_polygon_pool / zerc_per_usdc_polygon
+        max_possible_zerc_sell = usdc_amount_polygon_pool * zerc_per_usdc_polygon
         zerc_to_buy = min(max_possible_zerc_buy, max_possible_zerc_sell)
 
         # return values
