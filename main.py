@@ -7,6 +7,10 @@ def calc_arbitrage(usdc_amount_eth_pool: int, zerc_amount_eth_pool: int, usdc_am
     eth_w3 = Web3(Web3.HTTPProvider('https://mainnet.infura.io/v3/fc7a17cf5af743bb8c67eb6c71aa085f'))
     polygon_w3 = Web3(Web3.HTTPProvider('https://polygon-mainnet.infura.io/v3/fc7a17cf5af743bb8c67eb6c71aa085f'))
 
+    # considering decimals to get the pricing accurate
+    usdc_decimals = 6
+    zerc_decimals = 18
+
     # connect to ethereum contract
     eth_contract_abi = open("eth_contract_abi.json", "r").read()
     eth_contract_address = eth_w3.to_checksum_address("0x29eBA991F9D9E71C6bBd69cb71c074193fd877Fd")
@@ -14,8 +18,12 @@ def calc_arbitrage(usdc_amount_eth_pool: int, zerc_amount_eth_pool: int, usdc_am
 
     # find reserves of both coins in ethereum
     eth_reserves = eth_contract.functions.getReserves().call()
-    eth_usdc_reserve = eth_reserves[0]
-    eth_zerc_reserve = eth_reserves[1]
+    wei_eth_usdc_reserve = eth_reserves[0]
+    wei_eth_zerc_reserve = eth_reserves[1]
+
+    # getting the actual wei amount
+    eth_usdc_reserve_units = wei_eth_usdc_reserve / 10 ** usdc_decimals
+    eth_zerc_reserve_units = wei_eth_zerc_reserve / 10 ** zerc_decimals
 
     # connect to polygon contract
     polygon_contract_abi = open("polygon_contract_abi.json", "r").read()
@@ -24,16 +32,16 @@ def calc_arbitrage(usdc_amount_eth_pool: int, zerc_amount_eth_pool: int, usdc_am
 
     # find reserves of both coins in polygon
     polygon_reserves = polygon_contract.functions.getReserves().call()
-    polygon_usdc_reserve = polygon_reserves[0]
-    polygon_zerc_reserve = polygon_reserves[1]
+    wei_polygon_usdc_reserve = polygon_reserves[0]
+    wei_polygon_zerc_reserve = polygon_reserves[1]
 
-    # considering decimals to get the pricing accurate
-    usdc_decimals = 6
-    zerc_decimals = 18
+    # getting the actual wei amount
+    polygon_usdc_reserve_units = wei_polygon_usdc_reserve / 10 ** usdc_decimals
+    polygon_zerc_reserve_units = wei_polygon_zerc_reserve / 10 ** zerc_decimals
 
     # calculating zerc per usdc ratio in each network from reserves
-    zerc_per_usdc_eth = (eth_zerc_reserve / eth_usdc_reserve) / (10 ** (zerc_decimals - usdc_decimals))
-    zerc_per_usdc_polygon = (polygon_zerc_reserve / polygon_usdc_reserve) / (10 ** (zerc_decimals - usdc_decimals))
+    zerc_per_usdc_eth = (eth_zerc_reserve_units / eth_usdc_reserve_units)
+    zerc_per_usdc_polygon = (polygon_zerc_reserve_units / polygon_usdc_reserve_units)
 
     # the main idea is to buy zerc where we get more units per usdc, and sell it where we get more usdc units
 
@@ -72,5 +80,8 @@ def calc_arbitrage(usdc_amount_eth_pool: int, zerc_amount_eth_pool: int, usdc_am
     return expected_profit, traded_eth_zerc, traded_eth_usdc, traded_polygon_zerc, traded_polygon_usdc
 
 
+
+
 if __name__ == '__main__':
+
     calc_arbitrage(1000, 6000, 1000, 6000)
